@@ -1,14 +1,17 @@
 # Ace96au Promo Bot 🎰
 
-A full-featured Telegram marketing bot with Web App inline window, custom keyboard, promotional message push, and more.
+A full-featured Telegram marketing bot with custom keyboard, promotional messages, admin management, and bulk messaging capabilities.
 
 ## ✨ Features
 
-- 🎯 **Main Menu** - Display main menu when users send `/start`
-- ⌨️ **Custom Keyboard** - Interactive buttons at the bottom
-- 🌐 **Web App Inline Window** - `TRY LUCK` button opens inline website
-- 📢 **Promotional Messages** - Send promotional messages with text
+- 🎯 **Main Menu** - Display main menu with custom keyboard when users send `/start`
+- ⌨️ **Custom Keyboard** - Interactive buttons at the bottom for easy navigation
+- 📢 **Promotional Messages** - Send promotional messages with images and text
 - 🔘 **Interactive Buttons** - Inline buttons in messages that can jump to external links or channels
+- 👑 **Admin Management** - Complete admin system with user management
+- 📊 **User Statistics** - Track total users who started the bot
+- 📤 **Bulk Messaging** - Send messages to all users via forwarding or `/mailing` command
+- 💾 **Data Persistence** - User stats and admin data saved to JSON files
 
 ## 🚀 Quick Start
 
@@ -20,21 +23,17 @@ pip install -r requirements.txt
 
 ### 2. Configure Environment Variables
 
-Copy `.env.example` to `.env` and fill in your configuration:
-
-```bash
-cp .env.example .env
-```
-
-Edit the `.env` file:
+Create a `.env` file in the project root:
 
 ```env
 BOT_TOKEN=your_telegram_bot_token
-WEB_APP_URL=https://your_webapp_deployment_url
 TELEGRAM_CHANNEL=https://t.me/your_channel
 FREE_SPIN_URL=https://your_free_spin_link
 FREE_CREDIT_URL=https://your_free_credit_link
+DATA_DIR=/data
 ```
+
+**Note:** If not set, the bot will use default values from `config.py`.
 
 ### 3. Get Bot Token
 
@@ -43,18 +42,15 @@ FREE_CREDIT_URL=https://your_free_credit_link
 3. Follow the prompts to set bot name and username
 4. Copy the Bot Token to the `.env` file
 
-### 4. Deploy Web App
+### 4. Prepare Promotional Images (Optional)
 
-The Web App needs to be deployed to a publicly accessible URL. You can use:
+Place promotional images in the `public/` directory:
+- `public/free_spin.jpg` - Image for free spin promotion
+- `public/hot_game_tips.jpg` - Image for hot game tips channel
 
-- **GitHub Pages** (Free)
-- **Vercel** (Free)
-- **Netlify** (Free)
-- **Your own server**
+If images are not provided, the bot will send text-only messages.
 
-Upload the files in the `webapp/` directory to your server and ensure they are accessible via HTTPS.
-
-### 5. Run Bot
+### 5. Run Bot Locally
 
 ```bash
 python bot.py
@@ -64,81 +60,157 @@ python bot.py
 
 ```
 ace96_bot/
-├── bot.py              # Main bot file
-├── config.py           # Configuration file
+├── bot.py              # Main bot file with all handlers
+├── config.py           # Configuration file with environment variables
 ├── requirements.txt    # Python dependencies
-├── .env.example        # Environment variables example
-├── .env                # Environment variables (needs to be created)
+├── Dockerfile          # Docker configuration for deployment
+├── fly.toml            # Fly.io deployment configuration
+├── DEPLOY.md           # Deployment guide (Chinese)
 ├── README.md           # Project documentation
-└── webapp/             # Web App files
-    └── index.html      # Main page (iframe embedding website)
+├── public/             # Promotional images directory
+│   ├── free_spin.jpg
+│   └── hot_game_tips.jpg
+└── data/               # Data directory (created at runtime)
+    ├── user_stats.json # User statistics
+    └── admins.json     # Admin list
 ```
 
 ## 🎮 Usage
 
 ### Bot Commands
 
-- `/start` - Display main menu
+#### User Commands
+- `/start` - Display main menu with custom keyboard
+
+#### Admin Commands
+- `/stats` - Show total number of users who started the bot
+- `/setadmin <user_id>` - Add a user as administrator
+- `/removeadmin <user_id>` - Remove a user from administrators
+- `/listadmins` - List all administrators
+- `/data` - View admins and user statistics (shows first 20 users)
+- `/mailing` - Send the replied message to all users
+- `/test_mailing` - Test mailing functionality (debug command)
 
 ### Button Functions
 
-1. **TRY LUCK ✨** - Opens inline Web App, displays website (https://ace96au.com/)
-2. **GET FREE SPIN ON COLA13 ✨** - Shows free spin promotional information
-3. **HOT GAME TIPS CHANNEL ☎️** - Shows hot game tips channel information
+1. **GET FREE SPIN ON ACE96AU 🎰** - Shows free spin promotional information with inline buttons:
+   - `CHEKC FREE SPIN ON WEB 🎁` - Links to free spin URL
+   - `TELEGRAM CHANNEL ❤️` - Links to Telegram channel
 
-### Web App Function
+2. **HOT GAME TIPS CHANNEL 🍒** - Shows hot game tips channel information with inline buttons:
+   - `FREE CREDIT GIFT 🎁` - Links to free credit URL
+   - `HOT CHANNEL 🤑` - Links to Telegram channel
 
-- Embeds website (https://ace96au.com/) in Telegram Web App window
-- Fullscreen iframe display
-- Integrated with Telegram Web App API
+### Admin Features
 
-## 🔧 Customization
+#### Setting Up First Admin
+The first user to send `/setadmin` becomes the first administrator. After that, only existing admins can add new admins.
 
-### Modify Promotional Text
+#### Bulk Messaging
+Admins can send messages to all users in two ways:
 
-Edit the text content in the `bot.py` file:
+1. **Forward Message** - Simply forward any message (photo, video, document, or text) to the bot, and it will automatically send to all users
+2. **Reply with /mailing** - Reply to any message with `/mailing` command to send it to all users
+
+The bot prioritizes forwarding messages to preserve Premium emoji and formatting. If forwarding fails, it falls back to resending the message.
+
+## 🔧 Configuration
+
+### Environment Variables
+
+All configuration is done through environment variables or `.env` file:
+
+- `BOT_TOKEN` (Required) - Telegram Bot Token from @BotFather
+- `TELEGRAM_CHANNEL` (Optional) - Telegram channel URL (default: `https://t.me/ace96au`)
+- `FREE_SPIN_URL` (Optional) - Free spin promotion URL (default: `https://ace96au.com/RFACE96AUBOT9`)
+- `FREE_CREDIT_URL` (Optional) - Free credit promotion URL (default: `https://ace96au.com/RFACE96AUBOT9`)
+- `DATA_DIR` (Optional) - Directory for data files (default: `/data` for Fly.io, current directory for local)
+
+### Customization
+
+#### Modify Promotional Text
+
+Edit the text content in `bot.py`:
 
 ```python
-# Modify in handle_get_free_spin() function
+# In handle_get_free_spin() function
 promo_text = """Your promotional text..."""
+
+# In handle_hot_game_tips() function
+channel_text = """Your channel text..."""
 ```
 
-### Modify Web App
+#### Modify Image Paths
 
-Edit `webapp/index.html` to customize the embedded website URL or add additional features.
+Edit `config.py` to change image paths:
 
-## 📝 Notes
+```python
+FREE_SPIN_IMAGE_PATH = "public/free_spin.jpg"
+HOT_GAME_TIPS_IMAGE_PATH = "public/hot_game_tips.jpg"
+```
 
-1. **Web App URL must be HTTPS** - Telegram requires Web App to be accessible via HTTPS
-2. **Keep Bot Token secret** - Do not commit `.env` file to Git
-3. **Server requirements** - Bot needs to run continuously, recommend using a server or cloud service
-4. **Web App domain** - Need to configure allowed domains in Bot settings (via @BotFather)
+## 🛠️ Deployment
 
-## 🛠️ Deployment Recommendations
-
-### Local Testing
+### Local Development
 
 ```bash
 python bot.py
 ```
 
-### Server Deployment
+### Docker Deployment
 
-Recommend using `systemd` or `supervisor` to manage the bot process, ensuring 24/7 operation.
+Build and run with Docker:
 
-### Web App Deployment
+```bash
+docker build -t ace96-bot .
+docker run -d --env-file .env ace96-bot
+```
 
-1. Upload the `webapp/` directory to your server
-2. Configure Nginx or Apache to provide HTTPS access
-3. Fill in the URL in the `WEB_APP_URL` field of the `.env` file
+### Fly.io Deployment
+
+This bot is configured for deployment on Fly.io. See `DEPLOY.md` for detailed deployment instructions.
+
+**Quick deployment steps:**
+
+1. Install Fly CLI and login: `fly auth login`
+2. Create volume: `fly volumes create ace96_bot_data --size 1 --region sin`
+3. Set secrets: `fly secrets set BOT_TOKEN="your_token"`
+4. Deploy: `fly deploy`
+
+The bot uses Fly.io volumes for data persistence, ensuring user stats and admin data survive container restarts.
+
+## 📝 Notes
+
+1. **Keep Bot Token secret** - Do not commit `.env` file or hardcode tokens in code
+2. **Data Persistence** - On Fly.io, data is stored in `/data` volume. Locally, data is stored in the current directory
+3. **Image Support** - Promotional images are optional. If not found, the bot sends text-only messages
+4. **Admin System** - The first user to use `/setadmin` becomes the first admin. At least one admin must always exist
+5. **Message Forwarding** - The bot prioritizes forwarding messages to preserve Premium emoji and formatting
+
+## 🔍 Troubleshooting
+
+### Bot not responding
+- Check if `BOT_TOKEN` is set correctly
+- Check logs for error messages
+- Verify the bot is running and connected to Telegram
+
+### Mailing not working
+- Ensure you are an admin (use `/setadmin` first)
+- Check if there are users in the database (use `/stats`)
+- Verify the message has content (photo, video, document, or text)
+
+### Data not persisting
+- On Fly.io: Ensure volume is mounted correctly (check `fly.toml`)
+- Locally: Check if `DATA_DIR` has write permissions
 
 ## 📞 Support
 
 If you encounter issues, please check:
 - Whether the Bot Token is correct
-- Whether the Web App URL is accessible (must be HTTPS)
+- Whether environment variables are set properly
 - Whether the network connection is normal
 - Error messages in log files
+- Fly.io logs: `fly logs` (if deployed on Fly.io)
 
 ## 📄 License
 
